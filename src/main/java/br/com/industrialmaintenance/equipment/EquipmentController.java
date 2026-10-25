@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -30,7 +32,7 @@ public class EquipmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Equipment> create(@RequestBody Equipment equipment) {
+    public ResponseEntity<Equipment> create(@Valid @RequestBody Equipment equipment) {
         Equipment savedEquipment = equipmentService.save(equipment);
 
         return ResponseEntity
@@ -41,7 +43,7 @@ public class EquipmentController {
     @PutMapping("/{id}")
     public ResponseEntity<Equipment> update(
             @PathVariable Long id,
-            @RequestBody Equipment equipment) {
+            @Valid @RequestBody Equipment equipment) {
 
         return equipmentService.findById(id)
                 .map(existingEquipment -> {
