@@ -110,4 +110,113 @@ class WorkOrderServiceTest {
                 () -> workOrderService.findById(99L)
         );
     }
+
+
+    @Test
+    void shouldStartWorkOrderSuccessfully() {
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setEquipment(equipment);
+        workOrder.setDescription("Inspect motor");
+        workOrder.setStatus(WorkOrderStatus.OPEN);
+
+        when(equipment.getId()).thenReturn(1L);
+        when(workOrderRepository.findById(1L))
+                .thenReturn(Optional.of(workOrder));
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = workOrderService.start(1L);
+
+        assertEquals(WorkOrderStatus.IN_PROGRESS, response.status());
+        assertEquals("Inspect motor", response.description());
+        verify(workOrderRepository).save(workOrder);
+    }
+
+    @Test
+    void shouldCompleteWorkOrderSuccessfully() {
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setEquipment(equipment);
+        workOrder.setDescription("Inspect motor");
+        workOrder.setStatus(WorkOrderStatus.IN_PROGRESS);
+
+        when(equipment.getId()).thenReturn(1L);
+        when(workOrderRepository.findById(1L))
+                .thenReturn(Optional.of(workOrder));
+        when(workOrderRepository.save(any(WorkOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = workOrderService.complete(1L);
+
+        assertEquals(WorkOrderStatus.COMPLETED, response.status());
+        assertNotNull(response.completedAt());
+        assertEquals("Inspect motor", response.description());
+        verify(workOrderRepository).save(workOrder);
+    }
+
+
+    @Test
+    void shouldFindAllWorkOrders() {
+        WorkOrder first = new WorkOrder();
+        first.setEquipment(equipment);
+        first.setDescription("Inspect motor");
+        first.setStatus(WorkOrderStatus.OPEN);
+
+        WorkOrder second = new WorkOrder();
+        second.setEquipment(equipment);
+        second.setDescription("Replace bearing");
+        second.setStatus(WorkOrderStatus.IN_PROGRESS);
+
+        when(equipment.getId()).thenReturn(1L);
+        when(workOrderRepository.findAll())
+                .thenReturn(java.util.List.of(first, second));
+
+        var responses = workOrderService.findAll();
+
+        assertEquals(2, responses.size());
+        assertEquals("Inspect motor", responses.get(0).description());
+        assertEquals("Replace bearing", responses.get(1).description());
+
+        verify(workOrderRepository).findAll();
+    }
+
+    @Test
+    void shouldFindWorkOrdersByStatus() {
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setEquipment(equipment);
+        workOrder.setDescription("Inspect motor");
+        workOrder.setStatus(WorkOrderStatus.OPEN);
+
+        when(equipment.getId()).thenReturn(1L);
+        when(workOrderRepository.findByStatus(WorkOrderStatus.OPEN))
+                .thenReturn(java.util.List.of(workOrder));
+
+        var responses = workOrderService.findByStatus(WorkOrderStatus.OPEN);
+
+        assertEquals(1, responses.size());
+        assertEquals(WorkOrderStatus.OPEN, responses.get(0).status());
+        assertEquals("Inspect motor", responses.get(0).description());
+
+        verify(workOrderRepository).findByStatus(WorkOrderStatus.OPEN);
+    }
+
+    @Test
+    void shouldFindWorkOrdersByEquipmentId() {
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setEquipment(equipment);
+        workOrder.setDescription("Inspect motor");
+        workOrder.setStatus(WorkOrderStatus.OPEN);
+
+        when(equipment.getId()).thenReturn(1L);
+        when(workOrderRepository.findByEquipmentId(1L))
+                .thenReturn(java.util.List.of(workOrder));
+
+        var responses = workOrderService.findByEquipmentId(1L);
+
+        assertEquals(1, responses.size());
+        assertEquals(1L, responses.get(0).equipmentId());
+        assertEquals("Inspect motor", responses.get(0).description());
+
+        verify(workOrderRepository).findByEquipmentId(1L);
+    }
+
 }
