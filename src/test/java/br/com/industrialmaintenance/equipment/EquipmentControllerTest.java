@@ -72,7 +72,10 @@ class EquipmentControllerTest {
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/equipments/999"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.message")
+                        .value("Equipment not found with id: 999"));
     }
 
     @Test
@@ -152,7 +155,10 @@ class EquipmentControllerTest {
         mockMvc.perform(put("/api/equipments/999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(equipment)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.message")
+                        .value("Equipment not found with id: 999"));
     }
 
     @Test
@@ -174,6 +180,9 @@ class EquipmentControllerTest {
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(delete("/api/equipments/999"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.message")
+                        .value("Equipment not found with id: 999"));
     }
 }

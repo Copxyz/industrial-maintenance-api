@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.industrialmaintenance.exception.ResourceNotFoundException;
+
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -26,9 +28,12 @@ public class EquipmentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Equipment> findById(@PathVariable Long id) {
-        return equipmentService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        Equipment equipment = equipmentService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipment not found with id: " + id
+                ));
+
+        return ResponseEntity.ok(equipment);
     }
 
     @PostMapping
@@ -45,29 +50,32 @@ public class EquipmentController {
             @PathVariable Long id,
             @Valid @RequestBody Equipment equipment) {
 
-        return equipmentService.findById(id)
-                .map(existingEquipment -> {
-                    existingEquipment.setName(equipment.getName());
-                    existingEquipment.setCode(equipment.getCode());
-                    existingEquipment.setManufacturer(equipment.getManufacturer());
-                    existingEquipment.setModel(equipment.getModel());
-                    existingEquipment.setSerialNumber(equipment.getSerialNumber());
-                    existingEquipment.setLocation(equipment.getLocation());
+        Equipment existingEquipment = equipmentService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipment not found with id: " + id
+                ));
 
-                    Equipment updatedEquipment =
-                            equipmentService.save(existingEquipment);
+        existingEquipment.setName(equipment.getName());
+        existingEquipment.setCode(equipment.getCode());
+        existingEquipment.setManufacturer(equipment.getManufacturer());
+        existingEquipment.setModel(equipment.getModel());
+        existingEquipment.setSerialNumber(equipment.getSerialNumber());
+        existingEquipment.setLocation(equipment.getLocation());
 
-                    return ResponseEntity.ok(updatedEquipment);
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        Equipment updatedEquipment = equipmentService.save(existingEquipment);
+
+        return ResponseEntity.ok(updatedEquipment);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        return equipmentService.findById(id)
-                .map(equipment -> {
-                    equipmentService.deleteById(id);
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        equipmentService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Equipment not found with id: " + id
+                ));
+
+        equipmentService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
