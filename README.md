@@ -24,12 +24,14 @@ O projeto foi desenvolvido com foco em boas práticas de programação, organiza
 - Spring Web MVC
 - Spring Data JPA
 - Bean Validation
-- PostgreSQL
+- PostgreSQL 18
 - Maven
 - JUnit 5
 - Mockito
 - MockMvc
 - Springdoc OpenAPI / Swagger UI
+- Docker
+- Docker Compose
 
 ## Arquitetura
 
@@ -44,10 +46,15 @@ A aplicação segue uma organização modular, separando responsabilidades entre
 
 ## Pré-requisitos
 
-Antes de executar o projeto, instale:
+Escolha a forma de execução desejada.
 
+**Execução local:**
 - Java Development Kit (JDK) 21.
 - PostgreSQL.
+- Git, para clonar o repositório.
+
+**Execução com Docker:**
+- Docker Desktop com Docker Compose.
 - Git, para clonar o repositório.
 
 O projeto inclui o Maven Wrapper, utilizado para executar os comandos Maven sem precisar instalar o Maven separadamente.
@@ -55,6 +62,8 @@ O projeto inclui o Maven Wrapper, utilizado para executar os comandos Maven sem 
 ## Configuração do banco de dados
 
 A aplicação utiliza PostgreSQL para persistência dos dados.
+
+### Execução local
 
 1. Instale e inicie o PostgreSQL.
 2. Crie um banco de dados chamado `maintenance_system`.
@@ -71,8 +80,9 @@ Por padrão, a aplicação utiliza:
 - **Usuário:** postgres
 - **Senha:** fornecida pela variável de ambiente `DB_PASSWORD`
 
-O Hibernate está configurado para atualizar automaticamente
-o esquema do banco de dados durante a execução da aplicação.
+A URL de conexão pode ser sobrescrita pela variável opcional `DB_URL`. Caso ela não esteja definida, a aplicação utiliza a URL local padrão.
+
+O Hibernate está configurado para atualizar automaticamente o esquema do banco de dados durante a execução da aplicação.
 
 ## Como executar
 
@@ -83,27 +93,25 @@ git clone https://github.com/Copxyz/industrial-maintenance-api.git
 cd industrial-maintenance-api
 ```
 
-### 2. Configurar o banco de dados
+### 2. Executar localmente
 
 Certifique-se de que o PostgreSQL esteja em execução e que o banco `maintenance_system` tenha sido criado.
 
 Configure a variável de ambiente `DB_PASSWORD` com a senha do usuário PostgreSQL.
 
-No Windows PowerShell, No Windows PowerShell, configure a variável de ambiente com a senha do PostgreSQL:
+No Windows PowerShell:
 
 ```powershell
 $env:DB_PASSWORD="sua_senha_do_postgresql"
 ```
 
-### 3. Executar a aplicação
-
-No Windows PowerShell, execute a aplicação com o Maven Wrapper:
+Execute a aplicação com o Maven Wrapper:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Alternativamente, importe o projeto em uma IDE de sua preferência e execute a classe principal `IndustrialMaintenanceApiApplication`, certificando-se de que a variável de ambiente `DB_PASSWORD` esteja configurada no ambiente de execução.
+Alternativamente, importe o projeto em uma IDE de sua preferência e execute a classe principal `IndustrialMaintenanceApiApplication`, certificando-se de que as variáveis de ambiente necessárias estejam configuradas no ambiente de execução.
 
 Após a inicialização, a API estará disponível em:
 
@@ -111,7 +119,60 @@ Após a inicialização, a API estará disponível em:
 http://localhost:8080
 ```
 
-A aplicação utiliza a porta `8080` por padrão, salvo se houver outra configuração.
+### 3. Executar com Docker Compose
+
+Com o Docker Desktop instalado e em execução, configure a variável de ambiente `DB_PASSWORD` no Windows PowerShell:
+
+```powershell
+$env:DB_PASSWORD="sua_senha_do_postgresql"
+```
+
+Na raiz do projeto, execute:
+
+```powershell
+docker compose up -d --build
+```
+
+Esse comando constrói a imagem da aplicação, inicia o PostgreSQL e inicia a API após o banco estar pronto.
+
+Os serviços ficam disponíveis em:
+
+| Serviço | Endereço |
+|---|---|
+| API REST | http://localhost:8080 |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
+| OpenAPI | http://localhost:8080/v3/api-docs |
+| PostgreSQL | localhost:5433 |
+
+O Docker Compose utiliza um volume persistente chamado `postgres_data` para armazenar os dados do PostgreSQL. Assim, os dados são preservados quando os containers são encerrados e iniciados novamente.
+
+**Comandos úteis:**
+
+Consultar o estado dos containers:
+
+```powershell
+docker compose ps
+```
+
+Visualizar os logs:
+
+```powershell
+docker compose logs -f
+```
+
+Encerrar os serviços:
+
+```powershell
+docker compose down
+```
+
+O comando `docker compose down` preserva o volume do banco de dados. Evite utilizar `docker compose down -v` se desejar manter os dados armazenados.
+
+Para iniciar novamente os serviços:
+
+```powershell
+docker compose up -d
+```
 
 ## Documentação da API
 
@@ -166,15 +227,15 @@ A API disponibiliza endpoints REST organizados por módulos funcionais.
 | POST | `/api/part-usages` | Registrar peça utilizada |
 | GET | `/api/part-usages/work-order/{workOrderId}` | Consultar peças utilizadas em uma ordem de serviço |
 
-### Histórico de manutenção (Maintenance-records)
+### Histórico de manutenção (Maintenance records)
 
 | Método | Endpoint | Descrição |
 |:---:|---|---|
 | POST | `/api/maintenance-records` | Registrar intervenção de manutenção |
 | GET | `/api/maintenance-records/work-order/{workOrderId}` | Consultar histórico de manutenção de uma ordem de serviço |
 
-### Custos de manutenção (Maintenance-costs)
-    
+### Custos de manutenção (Maintenance costs)
+
 | Método | Endpoint | Descrição |
 |:---:|---|---|
 | GET | `/api/maintenance-costs` | Consultar relatório geral de custos |
@@ -214,6 +275,8 @@ Este projeto tem como objetivos praticar e demonstrar conhecimentos em:
 - Validação de entradas e tratamento de exceções.
 - Testes automatizados.
 - Documentação de APIs com OpenAPI.
+- Conteinerização de aplicações com Docker.
+- Orquestração de serviços com Docker Compose.
 - Organização e manutenção de código.
 
 ## Licença
